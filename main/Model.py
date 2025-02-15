@@ -31,13 +31,6 @@ class InferenceRequest(BaseModel):
             raise ValueError("Temperature must be above -273°C (absolute zero)")
         return v
 
-    @validator("feed_stock_type")
-    def validate_feed_stock_type(cls, v):
-        allowed_types = {"type1", "type2", "type3"}
-        if v.lower() not in allowed_types:
-            raise ValueError(f"feed_stock_type must be one of {allowed_types}")
-        return v.lower()
-
 
 class Model:
     ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
