@@ -1,12 +1,21 @@
 from crunchflow.input import InputFile
-from Inference import InferenceRequest
-from logger import setup_logger
+from pydantic import BaseModel
+from main.utils.logger import setup_logger
 import subprocess
 import os
 import pandas as pd
 from crunchflow.output import TimeSeries
+import numpy as np
 
 logger = setup_logger(__name__)
+
+
+class InferenceRequest(BaseModel):
+    address: str
+    temperature: int
+    feed_stock_type: str
+    area: float
+    time_period: int
 
 
 class Model:
@@ -33,8 +42,9 @@ class Model:
         """
         Computes the total CO2 concentration in the specified domain.
         """
+        co2_values = co2_series.astype(np.float64)
         co2_concentration = (
-            co2_series.cumsum()
+            co2_values.cumsum()
             * Model.FIXED_DEPTH
             * area
             * Model.MOLECULAR_WEIGHT_CO2
@@ -47,7 +57,7 @@ class Model:
         Creates a new crunflow input tensor.
         """
         self.simulation = InputFile.load(self.INPUT_FILE_NAME, path=self.ASSETS_PATH)
-        self.simulation.temperature.set_temperature = model_config.temperature
+        self.simulation.temperature.set_temperature = float(model_config.temperature)
         self.simulation.flow.constant_flow = self._convert_years_to_flows(
             model_config.time_period
         )
@@ -59,10 +69,12 @@ class Model:
         """
         Runs the crunchflow simulation with the specified model configuration.
         """
+        if model_config.time_period <= 0:
+            raise ValueError("The time period must be greater than zero.")
         self.create_input(model_config)
         os.chdir(self.ASSETS_PATH)
-        subprocess.run(["crunchflow", self.INPUT_FILE_MODIFIED], check=True)
-        porosity = self.simulation.porosity.fix_porosity
+        subprocess.run(["CrunchTope", self.INPUT_FILE_MODIFIED], check=True)
+        porosity = float(self.simulation.porosity.fix_porosity)
         ts = TimeSeries("totconhistory.txt")
         df = ts.df
         co2_series = df["Tracer"]
