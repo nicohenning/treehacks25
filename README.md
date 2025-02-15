@@ -22,5 +22,5 @@ fastapi dev app/app.py
 docker build -t runner .
 ```
 ```bash
-docker run -p 80:80 runner
+docker run --env-file .env -p 80:80 runner 
 ```
