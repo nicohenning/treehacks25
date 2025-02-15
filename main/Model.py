@@ -1,6 +1,7 @@
 from crunchflow.input import InputFile
 from pydantic import BaseModel, Field, validator
 from main.utils.logger import setup_logger
+from main.utils.location_temp import get_lat_lon_from_address, get_average_yearly_temperature
 import subprocess
 import os
 import pandas as pd
@@ -12,7 +13,6 @@ logger = setup_logger(__name__)
 
 class InferenceRequest(BaseModel):
     address: str = Field(..., description="Simulation address (must be non-empty)")
-    temperature: int = Field(..., description="Temperature (in Celsius)")
     feed_stock_type: str = Field(..., description="Type of feed stock")
     area: float = Field(..., gt=0, description="Area must be greater than zero")
     time_period: int = Field(
@@ -23,12 +23,6 @@ class InferenceRequest(BaseModel):
     def validate_address(cls, v):
         if not v.strip():
             raise ValueError("Address must not be empty or blank")
-        return v
-
-    @validator("temperature")
-    def validate_temperature(cls, v):
-        if v < -273:
-            raise ValueError("Temperature must be above -273°C (absolute zero)")
         return v
 
 
@@ -72,8 +66,21 @@ class Model:
         """
         Creates a new crunflow input tensor.
         """
+        # Get coordinates from address
+        lat, lon = get_lat_lon_from_address(model_config.address)
+        if lat is None or lon is None:
+            raise ValueError(f"Could not get coordinates for address: {model_config.address}")
+
+        logger.info(f"Coordinates: {lat}, {lon}")
+
+        # Get temperature for the location
+        temperature = get_average_yearly_temperature(lat, lon)
+        if temperature is None:
+            raise ValueError(f"Could not get temperature for coordinates: {lat}, {lon}")
+        logger.info(f"Temperature: {temperature}")
+
         self.simulation = InputFile.load(self.INPUT_FILE_NAME, path=self.ASSETS_PATH)
-        self.simulation.temperature.set_temperature = float(model_config.temperature)
+        self.simulation.temperature.set_temperature = float(temperature)
         self.simulation.flow.constant_flow = self._convert_years_to_flows(
             model_config.time_period
         )
