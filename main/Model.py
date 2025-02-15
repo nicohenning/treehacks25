@@ -1,5 +1,5 @@
 from crunchflow.input import InputFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 from main.utils.logger import setup_logger
 import subprocess
 import os
@@ -11,11 +11,32 @@ logger = setup_logger(__name__)
 
 
 class InferenceRequest(BaseModel):
-    address: str
-    temperature: int
-    feed_stock_type: str
-    area: float
-    time_period: int
+    address: str = Field(..., description="Simulation address (must be non-empty)")
+    temperature: int = Field(..., description="Temperature (in Celsius)")
+    feed_stock_type: str = Field(..., description="Type of feed stock")
+    area: float = Field(..., gt=0, description="Area must be greater than zero")
+    time_period: int = Field(
+        ..., gt=0, description="Time period (in years) must be greater than zero"
+    )
+
+    @validator("address")
+    def validate_address(cls, v):
+        if not v.strip():
+            raise ValueError("Address must not be empty or blank")
+        return v
+
+    @validator("temperature")
+    def validate_temperature(cls, v):
+        if v < -273:
+            raise ValueError("Temperature must be above -273°C (absolute zero)")
+        return v
+
+    @validator("feed_stock_type")
+    def validate_feed_stock_type(cls, v):
+        allowed_types = {"type1", "type2", "type3"}
+        if v.lower() not in allowed_types:
+            raise ValueError(f"feed_stock_type must be one of {allowed_types}")
+        return v.lower()
 
 
 class Model:
@@ -82,4 +103,6 @@ class Model:
             co2_series, porosity, model_config.area
         )
         total_concentration = concentration_ts.iloc[-1]
+        logger.info(f"Total concentration: {total_concentration}")
+        logger.info(f"Concentration time series: {concentration_ts}")
         return concentration_ts, total_concentration

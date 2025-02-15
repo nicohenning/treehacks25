@@ -16,3 +16,11 @@ To initialize the server
 ```bash
 fastapi dev app/app.py
 ```
+
+## Creating Docker Image
+```bash
+docker build -t runner .
+```
+```bash
+docker run -p 80:80 runner
+```
