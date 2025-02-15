@@ -1,1 +1,14 @@
-# treehacks25
+# Carbon Sequestration Factibility
+## How to run?
+Create a new virtual env
+```bash
+python3 -m venv .venv
+```
+Activate your virtualenv
+```bash
+source .venv/bin/activate
+```
+Install the dependencies from the `requirements.txt` file
+```bash
+pip3 install -r requirements.txt
+```
