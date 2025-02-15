@@ -1,0 +1,90 @@
+TITLE
+Exercise 6.1: Example of and advecting tracer
+END
+
+RUNTIME
+time_units        years
+timestep_max      .001
+timestep_init     1.0E-14
+time_tolerance    0.001
+correction_max    1.0
+debye-huckel      true
+database_sweep    false
+speciate_only     false
+database          datacom.dbs
+screen_output     100
+gimrt             false
+Courant_number    0.005
+END
+
+
+FLOW
+time_units      years
+distance_units  meters
+constant_flow   	2 
+END
+
+TRANSPORT
+distance_units       meters
+time_units           seconds
+dispersivity         0.0
+fix_diffusion        0.919E-09
+formation_factor         1.0  
+cementation_exponent     1.0
+set_porosity 0.1 
+END
+
+
+OUTPUT 
+spatial_profile     0.25 0.5 0.75 1 
+time_series_print   Tracer 
+time_series         totconhistory.txt  50 1 1                    
+END
+ 
+POROSITY
+fix_porosity 0.1 
+END
+
+PRIMARY_SPECIES
+Tracer
+END
+
+MINERALS
+END
+
+DISCRETIZATION
+xzones 300 0.1
+END
+ 
+BOUNDARY_CONDITIONS
+X_begin   Groundwater    flux
+X_end     Groundwater    flux
+Y_begin   Groundwater    flux
+Y_end     Groundwater    flux
+END
+ 
+INITIAL_CONDITIONS
+Injection 1  1  1
+Groundwater 2-300 1 1
+END
+ 
+Condition Injection
+units            mol/kg  
+Tracer                             1E-3            
+END
+
+Condition Groundwater
+units            mol/kg  
+Tracer                             1E-15 
+END
+
+SECONDARY_SPECIES                                                           
+END
+
+POROSITY
+porosity_update false
+END
+
+TEMPERATURE
+set_temperature 25
+END
