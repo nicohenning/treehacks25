@@ -1,3 +1,4 @@
+from Model import Model
 from fastapi import FastAPI
 from Inference import InferenceRequest
 from logger import setup_logger
@@ -14,4 +15,6 @@ def read_root():
 @app.post("/inference")
 def run_inference(request: InferenceRequest):
     logger.info(f"Received inference request: {request}")
+    model = Model()
+    model.create_input(request)
     return {"inference": "running"}
