@@ -12,3 +12,7 @@ Install the dependencies from the `requirements.txt` file
 ```bash
 pip3 install -r requirements.txt
 ```
+To initialize the server
+```bash
+fastapi dev app/app.py
+```

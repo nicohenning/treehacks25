@@ -1,1 +1,2 @@
 fastapi[standard]==0.115.8
+crunchflow==2.0.5
