@@ -1,7 +1,10 @@
 from crunchflow.input import InputFile
 from pydantic import BaseModel, Field, validator
 from main.utils.logger import setup_logger
-from main.utils.location_temp import get_lat_lon_from_address, get_average_yearly_temperature
+from main.utils.location_temp import (
+    get_lat_lon_from_address,
+    get_average_yearly_temperature,
+)
 import subprocess
 import os
 import pandas as pd
@@ -66,14 +69,14 @@ class Model:
         """
         Creates a new crunflow input tensor.
         """
-        # Get coordinates from address
         lat, lon = get_lat_lon_from_address(model_config.address)
         if lat is None or lon is None:
-            raise ValueError(f"Could not get coordinates for address: {model_config.address}")
+            raise ValueError(
+                f"Could not get coordinates for address: {model_config.address}"
+            )
 
         logger.info(f"Coordinates: {lat}, {lon}")
 
-        # Get temperature for the location
         temperature = get_average_yearly_temperature(lat, lon)
         if temperature is None:
             raise ValueError(f"Could not get temperature for coordinates: {lat}, {lon}")
