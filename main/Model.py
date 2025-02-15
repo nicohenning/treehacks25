@@ -40,6 +40,7 @@ class Model:
     DOMAIN_LENGTH = 30
     FIXED_DEPTH = 0.25
     MOLECULAR_WEIGHT_CO2 = 44.01
+    CO_2_DENSITY = 1.98
 
     def __init__(self):
         pass
@@ -63,6 +64,7 @@ class Model:
             * area
             * Model.MOLECULAR_WEIGHT_CO2
             * porosity
+            * Model.CO_2_DENSITY
         )
         return co2_concentration
 
