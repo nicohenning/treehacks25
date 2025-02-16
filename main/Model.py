@@ -231,7 +231,8 @@ class Model:
         concentration_ts = self._compute_total_concentration(
             co2_series, porosity, model_config.area
         )
+        ph_ts = df["pH"]
         total_concentration = concentration_ts.iloc[-1]
         logger.info(f"Total concentration: {total_concentration}")
         logger.info(f"Concentration time series: {concentration_ts}")
-        return concentration_ts, total_concentration
+        return concentration_ts, total_concentration, ph_ts

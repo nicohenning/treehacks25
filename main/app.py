@@ -25,10 +25,11 @@ def run_inference(request: InferenceRequest):
     logger.info(f"Received inference request: {request}")
     try:
         model = Model()
-        concentration_ts, total_concentration = model.run_simulation(request)
+        concentration_ts, total_concentration, ph_ts = model.run_simulation(request)
         return {
             "concentration_ts": concentration_ts.values.tolist(),
             "total_concentration": total_concentration,
+            "ph_ts": ph_ts.values.tolist(),
         }
     except Exception as e:
         logger.error(f"Error running inference: {e}")
