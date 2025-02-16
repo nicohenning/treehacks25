@@ -25,11 +25,15 @@ def run_inference(request: InferenceRequest):
     logger.info(f"Received inference request: {request}")
     try:
         model = Model()
-        concentration_ts, total_concentration, ph_ts = model.run_simulation(request)
+        concentration_ts, total_concentration, ph_ts, financial_analysis = model.run_simulation(request)
         return {
             "concentration_ts": concentration_ts.values.tolist(),
             "total_concentration": total_concentration,
             "ph_ts": ph_ts.values.tolist(),
+            "financial_analysis": {
+                "annual_cash_flows": financial_analysis["annual_cash_flows"],
+                "cumulative_cash_flows": financial_analysis["cumulative_cash_flows"]
+            }
         }
     except Exception as e:
         logger.error(f"Error running inference: {e}")

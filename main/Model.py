@@ -10,6 +10,11 @@ import os
 import pandas as pd
 from crunchflow.output import TimeSeries
 import numpy as np
+from main.utils.financial_analysis import (
+    FeedstockType,
+    calculate_breakeven,
+    convert_mol_to_tons_co2
+)
 
 logger = setup_logger(__name__)
 
@@ -214,6 +219,7 @@ class Model:
     def run_simulation(self, model_config: InferenceRequest):
         """
         Runs the crunchflow simulation with the specified model configuration.
+        Returns simulation results and financial analysis.
         """
         if model_config.time_period <= 0:
             raise ValueError("The time period must be greater than zero.")
@@ -221,18 +227,35 @@ class Model:
             raise ValueError(
                 "The sum of clay, silt, and sand percentages must not be greater than 1."
             )
+        
         self.create_input(model_config)
         os.chdir(self.ASSETS_PATH)
         subprocess.run(["CrunchTope", self.INPUT_FILE_MODIFIED], check=True)
+        
         porosity = 0.999999
         ts = TimeSeries("timeEW2m.out")
         df = ts.df
         co2_series = df["CO2(aq)"]
+        ph_series = df["pH"]
+        
         concentration_ts = self._compute_total_concentration(
             co2_series, porosity, model_config.area
         )
-        ph_ts = df["pH"]
         total_concentration = concentration_ts.iloc[-1]
+        
+        # Calculate financial metrics
+        co2_tons = convert_mol_to_tons_co2(total_concentration)
+        financial_analysis = calculate_breakeven(
+            co2_sequestration_rate=co2_tons/model_config.area,
+            feedstock_type=model_config.feedstock_type,
+            application_rate=model_config.application_rate,
+            area_ha=model_config.area,
+            years=model_config.time_period
+        )
+        
         logger.info(f"Total concentration: {total_concentration}")
         logger.info(f"Concentration time series: {concentration_ts}")
-        return concentration_ts, total_concentration, ph_ts
+        logger.info(f"CO2 sequestered (tons): {co2_tons}")
+        logger.info(f"Financial analysis: {financial_analysis}")
+        
+        return concentration_ts, total_concentration, ph_series, financial_analysis
